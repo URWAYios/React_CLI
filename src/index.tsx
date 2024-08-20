@@ -84,6 +84,7 @@ console.log('SHA-256 Hash in Apple Pay :', hash);
       console.log(error);
       // 'Unable to get IP address.'
     });
+    console.log(ipadd);
     try {
       const appletoken = await getApplePayToken();
     const paymentRequest = 
@@ -142,6 +143,7 @@ export const PluginApp = ( props: {
         let urldata = '';
         let navUrl = ''; 
         let devicejson ={};
+      
         // const reqparams = JSON.stringify({"trackid":"170735576","transid":"170735576","terminalId":"recterm","customerEmail":"pooja.thorat@concertosoft.com","address":"Mahape","city":"Mumbai","state":"Maharashtra","zipCode":"400071","customerName":"pooja thorat","cardHolderName":"pooja thorat","action":"1","instrumentType":"DEFAULT","merchantIp":"10.10.11.76","password":"password","currency":"SAR","country":"IN","amount":"1.00","udf2":"","udf3":"","udf1":"","udf5":"","udf4":"","requestHash":"716a83741f3bbbbe01209cd407da9f903084e66ca7af1932c35d6c99c5ab6d80","metaData":"{entry:entry1,entry2:entry2}"}
         // );
    
@@ -151,9 +153,10 @@ export const PluginApp = ( props: {
           
         // }, [ressHash]);
   
+
       useEffect(() => 
       {
-       async function goForFetch() 
+        function goForFetch() 
        {
           const txn_details = "" + requestdata.trackid + "|" + requestdata.terminalId + "|" + requestdata.password + "|" + requestdata.merchantkey + "|" + requestdata.amount +
           "|" + requestdata.currency + "";
@@ -167,12 +170,6 @@ publicIP()
 .then(ip => {
   console.log(ip);
 ipadd = ip ;
-  // '47.122.71.234'
-})
-.catch(error => {
-  console.log(error);
-  // 'Unable to get IP address.'
-});
                  
           let fields = {};
           let appresp = '';
@@ -185,7 +182,7 @@ ipadd = ip ;
   
           devicejson = {
                                  'pluginName': "React Native ",
-                                 'pluginVersion': '3.0',
+                                 'pluginVersion': '1.0.0',
                                  'pluginPlatform': "DeviceInfo.getDeviceType()",
                                  'deviceModel': "DeviceInfo.getModel()",
                                  'devicePlatform': "DeviceInfo.getSystemName()",
@@ -203,7 +200,7 @@ ipadd = ip ;
                             // };
                             // }
   //   'transDate':moment().format("DD-MMM-YYYY"),  use this above
-                             const json_devicedata = JSON.stringify(devicejson);
+    const json_devicedata = JSON.stringify(devicejson);
    console.log("Device INFo : "+json_devicedata);
           console.log("requestdata.action : "+requestdata.action);
           if(requestdata.action === '1'){
@@ -216,14 +213,14 @@ ipadd = ip ;
                  "cardHolderName": requestdata.first_name + " " + requestdata.last_name,
                  'action': requestdata.action,
                 
-                 'merchantIp':ipadd,
+                 'merchantIp':ip,
                  'password': requestdata.password,
                  'currency':  requestdata.currency,
                  'country': requestdata.country,
                  'amount': requestdata.amount,
                  'udf2': requestdata.udf2,
                  'udf3': requestdata.udf3,
-                 'customerIp': ipadd,
+                 'customerIp': ip,
                  'udf1': "",
                  'udf5': "",
                  'udf4': "",
@@ -247,14 +244,14 @@ ipadd = ip ;
                     'customerEmail': requestdata.email,
                     'customerName': requestdata.first_name + " " + requestdata.last_name,
                     'action': requestdata.action,
-                    'merchantIp': ipadd,
+                    'merchantIp': ip,
                     'password': requestdata.password,
                     'currency': requestdata.currency,
                     'country': requestdata.country,
                     'amount': requestdata.amount,
                     'udf2':  requestdata.udf2,
                     'udf3': requestdata.udf3,
-                    'customerIp':ipadd,
+                    'customerIp':ip,
                     'udf1': "",
                     'udf5': "",
                     'udf4': "",
@@ -278,14 +275,14 @@ ipadd = ip ;
                 "cardHolderName": requestdata.first_name + " " + requestdata.last_name,
                 'action': requestdata.action,
                 
-                'merchantIp':ipadd,
+                'merchantIp':ip,
                 'password': requestdata.password,
                 'currency':  requestdata.currency,
                 'country': requestdata.country,
                 'amount': requestdata.amount,
                 'udf2': requestdata.udf2,
                 'udf3': requestdata.udf3,
-                'customerIp': ipadd,
+                'customerIp': ip,
                 'udf1': "",
                 'udf5': "",
                 'udf4': "",
@@ -301,7 +298,7 @@ ipadd = ip ;
              let ress = ""; 
              //let apiresponse = '';
              
-              await fetch(requestdata.requestUrl, {
+               fetch(requestdata.requestUrl, {
                 method: 'POST',
                 headers: {
                   'Accept': 'application/json',
@@ -370,10 +367,16 @@ ipadd = ip ;
                    onModalClose(ress); 
                  }
                  }
+                 else {
+                  console.log("Direct Api  Response ");
+                  console.log(" Api  Response " + ress);
+                  onModalClose(ress); 
+                }
                
                   
                   console.log(" ++ "+ress);
                   return ress;
+                });
             // if(fromapple pay )
             // {
             //   gotobottomsheet()
@@ -447,7 +450,7 @@ ipadd = ip ;
           console.log("RESPONSE Parames " +JSON.stringify(params));
           setresponseData(JSON.stringify(params));
           console.log("RESPONSE responsedata " +responsedata);
-          onModalClose(JSON.stringify(params));
+          onModalClose(params);
           // navigation.navigate('Receipt',{
           //   data:params
           // });
@@ -475,7 +478,7 @@ ipadd = ip ;
         // }
           if(respparam === "" || respparam === "\"\"" )
           {
-            //console.log("response1 "+ responsedata);
+            //console.log("response1 "+ responsedata);s
             setModalVisible(modalVisible);
           }
           else{

@@ -1,216 +1,134 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules } from 'react-native';
 //import { config } from '../../../config';
-import { Alert ,View,Text,Modal,Button ,StyleSheet } from 'react-native';
+//import { Alert ,View,Text,Modal,Button ,StyleSheet } from 'react-native';
 import sha256 from 'js-sha256';
 import { useState,useEffect } from 'react';
 import queryString from 'query-string';
+import publicIP from 'react-native-public-ip';
 
-import { publicIpv4 } from 'public-ip';
+//import { publicIpv4 } from 'public-ip';
+import { View,Modal ,StyleSheet } from 'react-native';
 
-import CryptoJS from 'crypto-js';
+
 const { Applepay } = NativeModules;
 //import { useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
+import type { AndroidLayerType } from 'react-native-webview/lib/WebViewTypes';
 
-export const useUrway = () => {
 
-  const [modalVisible, setModalVisible] = useState(false);
 
-  const showModal = () => {
-    setModalVisible(true);
-  };
+const getApplePayToken = () => {
+  return new Promise((resolve, reject) => {
+    Applepay.createApplePayToken('merchant.sa.urwayphp', '1', 'Runali A', (err :  any, token:  AndroidLayerType) => {
+      if (err) {
+        reject(`Error coming from iOS: ${err}`);
+      } else {
+        console.log("Token " + token);
+        resolve(token);
+      }
+    });
+  });
+};
 
-  const hideModal = () => {
-    setModalVisible(false);
-  };
+
+export const useUrway =  async ( dataapplepay : any ) =>
+{
+
   
-  //const navigation = useNavigation();
-      const processPayment = (amount : String, trackId : String, label: String, merchantIdentifier: String) => {
-        return new Promise((res, rej) => {
-          if (Platform.OS === 'android') {
-            throw new Error('Apple Pay is not supported on Android devices');
-          }
-          // if (!config) {
-          //   rej('There is no config file in the root directory');
-          //   return;
-          // }
-          let valuesToBeHashed = `${trackId}|${"config.terminalId"}|${"config.password"}|${"config.key"}|${amount}|SAR`;
-          let hash = CryptoJS.SHA256(valuesToBeHashed).toString();
-          Applepay.createApplePayToken(merchantIdentifier, String(amount), label, async (err: any , token : any) => {
-            if (err) {
-              Alert.alert('Error', `${err}`, [{
-                text: 'ok',
-                style: 'default'
-              }]);
-              rej(`Error coming from iOS: ${err}`);
-            }
-            let paymentRequest = generatePaymentRequest(token, hash, amount, trackId, rej);
-           console.log(" PAYMENT REQ "+paymentRequest)
-            try {
-              const response = await fetch("config.requestUrl", {
-                method: 'POST',
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(paymentRequest)
-              });
-              const result = await response.json();
-             // setFe(result);
-              res(result);
-              console.log("In Apple Pay Token" + result);
-            } catch (e) {
-              rej('Something went wrong while sending the request');
-            }
-          });
-        });
-      };
-      const generatePaymentRequest = (token : String, hash : String, amount : String, trackId : String, rej : any) => {
-        if (token) {
-          if (token.includes('Simulated', 100)) {
-          //   Alert.alert('Error', 'Transaction was coming from a simulator', [{
-          //     text: 'ok',
-          //     style: 'default'
-          //   }]);
-             rej('Transaction was coming from a simulator');
-          //   return;
-           }
-        }
-        const paymentRequest = 
+//let appletoken = '';
+console.log("in UseUrway" + dataapplepay);
+
+const reqparams:any  = (dataapplepay);
+        const requestdata=JSON.parse(reqparams);
+console.log("in UseUrway props " + JSON.stringify(reqparams));
+
+const txn_details = "" + requestdata.trackid + "|" + requestdata.terminalId + "|" + requestdata.password + "|" + requestdata.merchantkey + "|" + requestdata.amount +
+"|" + requestdata.currency + "";
+const hash = sha256.sha256(txn_details);
+
+//let ipadd= await publicIpv4();
+
+console.log('SHA-256 Hash in Apple Pay :', hash);
+// Alert.alert('Error', 'Transaction was coming from a simulator', [{
+//        text: 'ok',
+//             style: 'default'
+//      }]);
+
+    //  Applepay.createApplePayToken('merchant.sa.urwayphp', '1', 'Runali A', async (err: any , token : any) => {
+    //   if (err) {
+    //     Alert.alert('Error', `${err}`, [{
+    //       text: 'ok',
+    //       style: 'default'
+    //     }]);
+
+    //     return(`Error coming from iOS: ${err}`);
+    //   }
+    //   else
+    //   {
+    //     console.log("Token " + token);
+    //     appletoken = token;
+    //     return  appletoken;
+    //   }
+
+    // });
+    let ipadd = '';
+    console.log('SHA-256 Hash:', hash);
+    console.log('IP Add:', ipadd);
+    publicIP()
+    .then(ip => {
+      console.log(ip);
+    ipadd = ip ;
+      // '47.122.71.234'
+    })
+    .catch(error => {
+      console.log(error);
+      // 'Unable to get IP address.'
+    });
+    try {
+      const appletoken = await getApplePayToken();
+    const paymentRequest = 
         {
-          trackid: trackId,
-          terminalId: "config.terminalId",
-          action: '1',
-          merchantIp: '10.10.10.10',
-          password: "config.password",
-          amount: amount,
+          trackid: requestdata.trackId,
+          terminalId: requestdata.terminalId,
+          action: requestdata.action,
+          merchantIp: ipadd,
+          password: requestdata.password,
+          amount: requestdata.amount,
           requestHash: hash,
-          country: 'SA',
-          currency: 'SAR',
-          customerIp: '10.10.10.10',
+          country: requestdata.country,
+          currency: requestdata.currency,
+          customerIp: ipadd,
           applepayId: 'applepay',
           udf1: null,
           udf2: null,
           udf3: null,
           udf4: 'ApplePay',
-          udf5: token
+          udf5: appletoken
         };
-        return paymentRequest;
-      };
-     
-    const processTransactionPayment = (amount : String, trackId : String, label: String, merchantIdentifier: String) => {
-
-  console.log("In ParocessPayment");
-  return new Promise(async (res, rej) => {    
-  //let valuesToBeHashed = '${trackId}|${"config.terminalId"}|${"config.password"}|${"config.key"}|${amount}|SAR';
-  let valuesToBeHashed = 'junaid|testterm30|password|436b1642fe4e609c12a1cecc52c0f9de7202936f284914eb51fc770ec794c390|5.618|SAR';
-
-  const hash = sha256.sha256(valuesToBeHashed);
-
-  console.log('SHA-256 Hash:', hash);
-  //let hash = CryptoJS.SHA256(valuesToBeHashed).toString();
-
-  const paymentRequest = {
-    
-      //transid:"2411618290661793556",
-      amount: "5.618",
-      addres: "thane",
-      customerIp: "10.10.11.66",
-      city: amount,
-      state:"mh",
-      zipCode:trackId,
-      trackid: "junaid",
-      terminalId: "testterm30",
-      password: "password",
-      action: "1",
-      merchantIp: "10.10.10.109",
-      requestHash: hash,
-      country: "IN",
-      currency: "SAR",
-      customerEmail: "rohan.chavan@concertosoft.com",
-      cardHolderName : label,
-      instrumentType: "DEFAULT",
-      udf1: merchantIdentifier
-   
-  };
-  try {
-    const response = await fetch("http://10.10.11.66:8080/PGService/transaction/jsonProcess/JSONrequest",
-     { method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(paymentRequest)
-    });
-    const result = await response.json();
-    console.log(" RESULT "+result);
-  
-   
-    res(result);
-  } catch (e) {
-    rej('Something went wrong while sending the request');
-  }
-  });
-    }
-
-    // const renderWebView = () => {
-    //   if (isWebViewVisible && webViewUrl) {
-    //     return (
-    //       <WebView
-    //         source={{ uri: webViewUrl }}
-    //         style={{ flex: 1 }}
-    //         onNavigationStateChange={handleNavigationStateChange}
-    //       />
-    //     );
-    //   }
-    //   return null; // Or return a placeholder/loader
-    // };
-  
-    // const handleNavigationStateChange = (navState : any) => {
-    //   // Example: if the user navigates to a certain URL, we can close the WebView or take some other action
-    //   if (navState.url.includes('success')) {
-    //     setIsWebViewVisible(false);
-    //     Alert.alert('Payment Successful!');
-    //   }
-    //   if (navState.url.includes('fail')) {  
-    //     setIsWebViewVisible(false);
-    //     Alert.alert('Payment Failed');
-    //   }
-    // };
-
-    const renderModal = () => {
-      return (
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalView}>
-              <Text style={styles.modalText}>Hello from the Custom Modal!</Text>
-              <Button
-                title="Close Modal"
-                onPress={() => setModalVisible(!modalVisible)}
-              />
-            </View>
-          </View>
-        </Modal>
-      );
+        console.log("Apple Pay Request "+ JSON.stringify(paymentRequest));
+       
+          const response = await fetch(requestdata.requestUrl, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(paymentRequest)
+          });
+          const result =  await response.json();
+         // setFe(result);
+         console.log("In Apple Pay Token" + JSON.stringify(result));
+          return(result);
+          
+        } catch (e) {
+          return('Something went wrong while sending the request');
         }
-   
-    
-    return {
-        processPayment,
-        processTransactionPayment,
-        showModal,
-        hideModal,
-        renderModal
-       };
-    
-      };
+
+
+
+
+}
+
 export const PluginApp = ( props: {
         onCloseModal( data: string): unknown ;  data: string | null | undefined ; onfromApplePay: boolean  }) =>
       {
@@ -241,14 +159,23 @@ export const PluginApp = ( props: {
           "|" + requestdata.currency + "";
           const hash = sha256.sha256(txn_details);
 
-let ipadd= await publicIpv4();
-
+//let ipadd= await publicIpv4();
+let ipadd = '';
 console.log('SHA-256 Hash:', hash);
 console.log('IP Add:', ipadd);
-           
- //console.log(ip);
+publicIP()
+.then(ip => {
+  console.log(ip);
+ipadd = ip ;
+  // '47.122.71.234'
+})
+.catch(error => {
+  console.log(error);
+  // 'Unable to get IP address.'
+});
                  
           let fields = {};
+          let appresp = '';
           // let hasshh =  ressHash;
           console.log("hash : "+hash);
           // let appName = DeviceInfo.getSystemName();
@@ -372,31 +299,52 @@ console.log('IP Add:', ipadd);
             console.log("Request Param in go for Fetch " + JSON.stringify(fields));
             console.log("requestdata.requestUrl " + requestdata.requestUrl);
              let ress = ""; 
+             //let apiresponse = '';
              
-              const response = await fetch("http://10.10.11.66:8080/PGService/transaction/jsonProcess/JSONrequest", {
+              await fetch(requestdata.requestUrl, {
                 method: 'POST',
                 headers: {
                   'Accept': 'application/json',
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(fields)
+              })
+              .then(response => {
+                // Check if the response is ok (status code 200-299)
+                if (!response.ok) {
+                  throw new Error('Network response was not ok');
+                }
+                // Parse the response body as JSON
+                return response.json();
+              })
+              .then(data => {
+                // Handle the parsed JSON data
+                console.log('Response JSON:', data);
+                appresp = JSON.stringify(data); 
+              })
+              .catch(error => {
+                // Handle errors
+                console.error('Error fetching data:', error);
               });
-              const result = await response.json();
+             //  const result = await response.json();
              // setFe(result);
-                 let urldecode = result.data;
+
+             console.error('Response data:', appresp);
+             const repdata=JSON.parse(appresp);
+                 let urldecode = repdata;
                  console.log("RESPONSE TEST " + urldecode);
                  ress = JSON.stringify(urldecode);
-               
-                 if('targetUrl' in urldecode && urldecode['targetUrl'] !== null ){
+                 console.log("RESPONSE TEST  ress - " + ress);
+                 if('targetUrl' in repdata && repdata['targetUrl'] !== null ){
                  console.log("Target URL available");
-                 if (urldecode['payid'] != undefined)  
+                 if (repdata['payid'] != undefined)  
                  {
                     
                       let url = "";
-                      if (urldecode['targetUrl'].includes('?paymentId=')) {
-                      url = urldecode['targetUrl'] + urldecode['payid'];
+                      if (repdata['targetUrl'].includes('?paymentId=')) {
+                      url = repdata['targetUrl'] + repdata['payid'];
                       } else {
-                      url = urldecode['targetUrl'] + "?paymentid=" + urldecode['payid'];
+                      url = repdata['targetUrl'] + "?paymentid=" + repdata['payid'];
                        }
                       console.log(" URL "+url);
                       urldata = url;
