@@ -1,14 +1,14 @@
-import { NativeModules } from 'react-native';
+import { NativeModules ,Platform } from 'react-native';
 //import { config } from '../../../config';
 //import { Alert ,View,Text,Modal,Button ,StyleSheet } from 'react-native';
 import sha256 from 'js-sha256';
 import { useState,useEffect } from 'react';
 import queryString from 'query-string';
 import publicIP from 'react-native-public-ip';
-
+import {Base64} from 'js-base64';
 //import { publicIpv4 } from 'public-ip';
 import { View,Modal ,StyleSheet } from 'react-native';
-
+import DeviceInfo from 'react-native-device-info';
 
 const { Applepay } = NativeModules;
 //import { useNavigation } from '@react-navigation/native';
@@ -17,13 +17,13 @@ import type { AndroidLayerType } from 'react-native-webview/lib/WebViewTypes';
 
 
 
-const getApplePayToken = () => {
+const getApplePayToken = (merchantid : string,amount :  string) => {
   return new Promise((resolve, reject) => {
-    Applepay.createApplePayToken('merchant.sa.urwayphp', '1', 'Runali A', (err :  any, token:  AndroidLayerType) => {
+    Applepay.createApplePayToken(merchantid, amount, 'Runali A', (err :  any, token:  AndroidLayerType) => {
       if (err) {
         reject(`Error coming from iOS: ${err}`);
       } else {
-        console.log("Token " + token);
+      //  console.log("Token " + token);
         resolve(token);
       }
     });
@@ -33,65 +33,53 @@ const getApplePayToken = () => {
 
 export const useUrway =  async ( dataapplepay : any ) =>
 {
-
+  if (Platform.OS === 'android') {
+    let respdata  = {
+      'data': "Apple Pay not supported ",
+      
+    };
+    return respdata;
+} else {
+   
   
 //let appletoken = '';
-console.log("in UseUrway" + dataapplepay);
+//console.log("in UseUrway" + dataapplepay);
 
 const reqparams:any  = (dataapplepay);
         const requestdata=JSON.parse(reqparams);
-console.log("in UseUrway props " + JSON.stringify(reqparams));
+//console.log("in UseUrway props " + JSON.stringify(reqparams));
 
 const txn_details = "" + requestdata.trackid + "|" + requestdata.terminalId + "|" + requestdata.password + "|" + requestdata.merchantkey + "|" + requestdata.amount +
 "|" + requestdata.currency + "";
+//console.log("in Trxn 1 " + txn_details);
+
 const hash = sha256.sha256(txn_details);
 
 //let ipadd= await publicIpv4();
 
-console.log('SHA-256 Hash in Apple Pay :', hash);
-// Alert.alert('Error', 'Transaction was coming from a simulator', [{
-//        text: 'ok',
-//             style: 'default'
-//      }]);
+//console.log('SHA-256 Hash in Apple Pay :', hash);
 
-    //  Applepay.createApplePayToken('merchant.sa.urwayphp', '1', 'Runali A', async (err: any , token : any) => {
-    //   if (err) {
-    //     Alert.alert('Error', `${err}`, [{
-    //       text: 'ok',
-    //       style: 'default'
-    //     }]);
-
-    //     return(`Error coming from iOS: ${err}`);
-    //   }
-    //   else
-    //   {
-    //     console.log("Token " + token);
-    //     appletoken = token;
-    //     return  appletoken;
-    //   }
-
-    // });
     let ipadd = '';
-    console.log('SHA-256 Hash:', hash);
-    console.log('IP Add:', ipadd);
+   // console.log('SHA-256 Hash:', hash);
+   // console.log('IP Add:', ipadd);
     publicIP()
     .then(ip => {
-      console.log(ip);
+      //console.log(ip);
     ipadd = ip ;
       // '47.122.71.234'
     })
-    .catch(error => {
+    .catch(error  => {
       console.log(error);
       // 'Unable to get IP address.'
     });
-    console.log(ipadd);
+    //console.log(ipadd);
     try {
-      const appletoken = await getApplePayToken();
+      const appletoken = await getApplePayToken(requestdata.merchantid,requestdata.amount);
     const paymentRequest = 
         {
           trackid: requestdata.trackId,
           terminalId: requestdata.terminalId,
-          action: requestdata.action,
+          action: "1",
           merchantIp: ipadd,
           password: requestdata.password,
           amount: requestdata.amount,
@@ -118,14 +106,18 @@ console.log('SHA-256 Hash in Apple Pay :', hash);
           });
           const result =  await response.json();
          // setFe(result);
-         console.log("In Apple Pay Token" + JSON.stringify(result));
+         //console.log("In Apple Pay Token" + JSON.stringify(result));
           return(result);
           
         } catch (e) {
-          return('Something went wrong while sending the request');
+          let respdata  = {
+            'data': 'Something went wrong while sending the request',
+            
+          };
+          return respdata ;
         }
 
-
+      }
 
 
 }
@@ -135,11 +127,12 @@ export const PluginApp = ( props: {
       {
         const [modalVisible, setModalVisible] = useState(true);
         const [urlddata, seturlDData ] = useState("");
-        const [responsedata, setresponseData ] = useState("");
+        //const [responsedata, setresponseData ] = useState("");
         // const [merchantip, setmerIPData ] = useState("");
         // const [ressHash, setresphash ] = useState(null);
         const reqparams:any  =(props.data);
         const requestdata=JSON.parse(reqparams);
+        //console.log("DATAA "+ JSON.stringify(requestdata));
         let urldata = '';
         let navUrl = ''; 
         let devicejson ={};
@@ -163,30 +156,31 @@ export const PluginApp = ( props: {
           const hash = sha256.sha256(txn_details);
 
 //let ipadd= await publicIpv4();
-let ipadd = '';
-console.log('SHA-256 Hash:', hash);
-console.log('IP Add:', ipadd);
+//let ipadd = '';
+//console.log('SHA-256 Hash:', hash);
+//console.log('IP Add:', ipadd);
 publicIP()
-.then(ip => {
-  console.log(ip);
-ipadd = ip ;
+.then(async ip => {
+  //console.log(ip);
+//ipadd = ip ;
                  
           let fields = {};
           let appresp = '';
           // let hasshh =  ressHash;
-          console.log("hash : "+hash);
+          //console.log("hash : "+hash);
           // let appName = DeviceInfo.getSystemName();
   
         // if(Platform === 'android')
         // {
-  
+        let appName = DeviceInfo.getSystemName();
+        console.log("appName : "+appName);
           devicejson = {
                                  'pluginName': "React Native ",
                                  'pluginVersion': '1.0.0',
-                                 'pluginPlatform': "DeviceInfo.getDeviceType()",
-                                 'deviceModel': "DeviceInfo.getModel()",
-                                 'devicePlatform': "DeviceInfo.getSystemName()",
-                                 'deviceOSVersion': "DeviceInfo.getSystemVersion()",
+                                 'pluginPlatform': DeviceInfo.getDeviceType(),
+                                 'deviceModel': DeviceInfo.getModel(),
+                                 'devicePlatform': DeviceInfo.getSystemName(),
+                                 'deviceOSVersion': DeviceInfo.getSystemVersion(),
                        };
                             // }
                             // else{
@@ -201,8 +195,8 @@ ipadd = ip ;
                             // }
   //   'transDate':moment().format("DD-MMM-YYYY"),  use this above
     const json_devicedata = JSON.stringify(devicejson);
-   console.log("Device INFo : "+json_devicedata);
-          console.log("requestdata.action : "+requestdata.action);
+   //console.log("Device INFo : "+json_devicedata);
+          //console.log("requestdata.action : "+requestdata.action);
           if(requestdata.action === '1'){
                fields = {
                  'trackid': requestdata.trackid,
@@ -226,7 +220,7 @@ ipadd = ip ;
                  'udf4': "",
                  'metaData': requestdata.metadata,
                  'tokenizationType': 0,
-                 'cardToken':requestdata.cardToken,
+                 'cardToken':requestdata.cardtoken,
                  'requestHash': hash,
                  'deviceInfo' : json_devicedata
              };
@@ -256,6 +250,7 @@ ipadd = ip ;
                     'udf5': "",
                     'udf4': "",
                     'tokenizationType': 0,
+                    'cardToken': requestdata.cardtoken,
                     'tokenOperation':requestdata.tokenizationType,
                     'metaData': requestdata.metadata,
                     'requestHash': hash,
@@ -263,7 +258,7 @@ ipadd = ip ;
                 }
             }
            
-            }
+           
             else
            {
               fields = {
@@ -288,17 +283,19 @@ ipadd = ip ;
                 'udf4': "",
                 'metaData': requestdata.metadata,
                 'tokenizationType': 0,
-                'cardToken':requestdata.cardToken,
+                'cardToken': requestdata.cardtoken,
+            'tokenOperation': requestdata.tokenizationType,
                 'requestHash': hash,
                 'deviceInfo' : json_devicedata
             };
            }
+          }
             console.log("Request Param in go for Fetch " + JSON.stringify(fields));
             console.log("requestdata.requestUrl " + requestdata.requestUrl);
              let ress = ""; 
              //let apiresponse = '';
              
-               fetch(requestdata.requestUrl, {
+               await fetch(requestdata.requestUrl, {
                 method: 'POST',
                 headers: {
                   'Accept': 'application/json',
@@ -316,8 +313,10 @@ ipadd = ip ;
               })
               .then(data => {
                 // Handle the parsed JSON data
-                console.log('Response JSON:', data);
+                //console.log('Response JSON:', data);
                 appresp = JSON.stringify(data); 
+                //console.error('Response data:1ss', appresp);
+
               })
               .catch(error => {
                 // Handle errors
@@ -326,14 +325,15 @@ ipadd = ip ;
              //  const result = await response.json();
              // setFe(result);
 
-             console.error('Response data:', appresp);
+             //sssconsole.error('Response data:', appresp);
              const repdata=JSON.parse(appresp);
                  let urldecode = repdata;
-                 console.log("RESPONSE TEST " + urldecode);
+                 //console.log("RESPONSE TEST " + urldecode);
                  ress = JSON.stringify(urldecode);
-                 console.log("RESPONSE TEST  ress - " + ress);
-                 if('targetUrl' in repdata && repdata['targetUrl'] !== null ){
-                 console.log("Target URL available");
+                //console.log("RESPONSE TEST  ress - " + ress);
+                if ('targetUrl' in repdata && repdata['targetUrl'] !== null) 
+                  {
+                 //console.log("Target URL available");
                  if (repdata['payid'] != undefined)  
                  {
                     
@@ -343,16 +343,16 @@ ipadd = ip ;
                       } else {
                       url = repdata['targetUrl'] + "?paymentid=" + repdata['payid'];
                        }
-                      console.log(" URL "+url);
+                      //console.log(" URL "+url);
                       urldata = url;
-                      console.log(" urldata: "+urldata);
+                     // console.log(" urldata: "+urldata);
                                       
                       const createJson = JSON.stringify({
                       'hostedurl': url,
                         });
                      seturlDData(urldata);
                           
-                      console.log("Create JSon "+createJson);
+                     console.log("Create JSon "+createJson);
                      // ress = createJson;
                     //  setresponseData(ress)
                      
@@ -361,20 +361,20 @@ ipadd = ip ;
                  }
                  else
                  {
-                   console.log("Target URL not available");
+                 //  console.log("Target URL not available");
                 //    setresponseData(ress);
          
                    onModalClose(ress); 
                  }
                  }
                  else {
-                  console.log("Direct Api  Response ");
+                 //console.log("Direct Api  Response ");
                   console.log(" Api  Response " + ress);
                   onModalClose(ress); 
                 }
                
                   
-                  console.log(" ++ "+ress);
+                 // console.log(" ++ "+ress);
                   return ress;
                 });
             // if(fromapple pay )
@@ -410,19 +410,19 @@ ipadd = ip ;
           if (navUrl !==  navState['url']) { 
             // let xyz = navState[url]
             navUrl  = navState['url'];
-            console.log(" Nav URL "+navUrl);
+          //  console.log(" Nav URL "+navUrl);
             const responseObject = queryString.parse(navUrl);
-             console.log("StringSplit Code "+responseObject['Result']);
+           //  console.log("StringSplit Code "+responseObject['Result']);
             //  let queries = queryString.parse(this.props.location.search)
             if (responseObject['Result'] != "" &&  ( responseObject['Result'] === "Successful" || responseObject['Result'] === "Failure" || responseObject['Result'] === "UnSuccessful" ) )
             {
-              console.log("RESULT "+ responseObject['Result']);
+            //  console.log("RESULT "+ responseObject['Result']);
               if(responseObject['metaData'] != "" || responseObject['metaData'] != null )
               {
                     dataM = responseObject['metaData'];
   
                   console.log(" dataM "+dataM);
-                  // var decryptdata=Base64.decode(dataM);
+                 //var decryptdata=Base64.decode(dataM);
                   // console.log("decrypt"+ decryptdata);
                 }
             var regex = /[?&]([^=#]+)=([^&#]*)/g,
@@ -430,16 +430,16 @@ ipadd = ip ;
             match:any;
           while (match = regex.exec(navUrl)) 
           {
-            console.log("RESPONSE params[match[1]] " +match[1]);
-            console.log("RESPONSE match[2] " +match[2]);
+          //  console.log("RESPONSE params[match[1]] " +match[1]);
+           // console.log("RESPONSE match[2] " +match[2]);
   
             if(match[1] == "metaData" && (match[2] != null || match[2] != ''))
             {
-              console.log("RESPONSE match[2] METADATA  " +match[2]);
-             // var decryptdata=Base64.decode(match[2]);
-              //console.log("decrypt METADATA "+ decryptdata);
-             // params[match[1]] =decryptdata;
-             params[match[1]]=match[2];
+            //  console.log("RESPONSE match[2] METADATA  " +match[2]);
+             var decryptdata=Base64.decode(match[2]);
+             console.log("decrypt METADATA "+ decryptdata);
+             params[match[1]] =decryptdata;
+             //params[match[1]]=match[2];
             }
   
             else
@@ -447,10 +447,10 @@ ipadd = ip ;
               params[match[1]] = match[2];
             }
           }
-          console.log("RESPONSE Parames " +JSON.stringify(params));
-          setresponseData(JSON.stringify(params));
-          console.log("RESPONSE responsedata " +responsedata);
-          onModalClose(params);
+         // console.log("RESPONSE Parames " +JSON.stringify(params));
+          //setresponseData(JSON.stringify(params));
+         // console.log("RESPONSE responsedata " +responsedata);
+          onModalClose(JSON.stringify(params));
           // navigation.navigate('Receipt',{
           //   data:params
           // });
@@ -459,7 +459,7 @@ ipadd = ip ;
            
           }
           else{
-            console.log("RESULT is empty");
+         //   console.log("RESULT is empty");
           }
         };
         
@@ -468,7 +468,7 @@ ipadd = ip ;
         const onModalClose = (respparam : string) => {
           // let data1 = JSON.stringify(" {name: 'example from model', type: 'closed from child'} " );
           // let data = props.data;
-         console.log("response1 "+ respparam);
+         //console.log("response1 "+ respparam);
         //  for (var key in respparam) {
         //   console.log("key",key);
         //   if(key === "result"){
@@ -482,7 +482,7 @@ ipadd = ip ;
             setModalVisible(modalVisible);
           }
           else{
-           console.log("response2 "+ responsedata);
+          // console.log("response2 "+ responsedata);
             setModalVisible(!modalVisible);
             props.onCloseModal( respparam);
           }
