@@ -12,11 +12,17 @@ npm install react-native-urwaypaymentplugin
 
 
 ```js
-import { multiply } from 'react-native-urwaypaymentplugin';
+import { useUrway } from 'react-native-urwaypaymentplugin';
 
-// ...
+// ...Apple Pay Integration
 
-const result = await multiply(3, 7);
+const pay = useUrway(JSON.stringify(data));
+```
+
+// ...Purchase,Pre Auth,Tokenization Transaction Integration
+
+(<PluginApp data={JSON.stringify(data)}  onCloseModal={handleCloseModal} />
+  ) :( <Text style={styles.txtAction}></Text> ) 
 ```
 
 
