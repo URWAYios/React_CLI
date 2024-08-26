@@ -17,7 +17,7 @@ import { useUrway } from 'react-native-urwaypaymentplugin';
 // ...Apple Pay Integration
 
 const pay = useUrway(JSON.stringify(data));
-```
+
 
 // ...Purchase,Pre Auth,Tokenization Transaction Integration
 
