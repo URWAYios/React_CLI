@@ -17,9 +17,9 @@ import type { AndroidLayerType } from 'react-native-webview/lib/WebViewTypes';
 
 
 
-const getApplePayToken = (merchantid : string,amount :  string) => {
+const getApplePayToken = (merchantid : string,amount :  string,name: string) => {
   return new Promise((resolve, reject) => {
-    Applepay.createApplePayToken(merchantid, amount, 'Runali A', (err :  any, token:  AndroidLayerType) => {
+    Applepay.createApplePayToken(merchantid, amount, name , (err :  any, token:  AndroidLayerType) => {
       if (err) {
         reject(`Error coming from iOS: ${err}`);
       } else {
@@ -74,7 +74,7 @@ const hash = sha256.sha256(txn_details);
     });
     //console.log(ipadd);
     try {
-      const appletoken = await getApplePayToken(requestdata.merchantid,requestdata.amount);
+      const appletoken = await getApplePayToken(requestdata.merchantid,requestdata.amount,requestdata.first_name);
     const paymentRequest = 
         {
           trackid: requestdata.trackId,
