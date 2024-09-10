@@ -1,6 +1,6 @@
 {
   "name": "react-native-urwaypaymentplugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Urway React Native Plugin",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -51,20 +51,19 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/URWAYios/UrwaySDKs/react-native-urwaypaymentplugin.git"
+    "url": "git+https://github.com/URWAYios/React_CLI.git"
   },
-  "author": "Urway <developer@urway.sa> (https://github.com/URWAYios/UrwaySDKs)",
+  "author": "Urway <developer@urway.sa> (https://github.com/URWAYios/React_CLI)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/URWAYios/UrwaySDKs/react-native-urwaypaymentplugin/issues"
+    "url": "https://github.com/URWAYios/React_CLI/issues"
   },
-  "homepage": "https://github.com/URWAYios/UrwaySDKs/react-native-urwaypaymentplugin#readme",
+  "homepage": "https://github.com/URWAYios/React_CLI#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
-    "@evilmartians/lefthook": "^1.5.0",
     "@react-native/eslint-config": "^0.73.1",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/crypto-js": "^4.2.2",
