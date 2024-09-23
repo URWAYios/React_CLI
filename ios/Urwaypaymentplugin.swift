@@ -72,7 +72,7 @@ class Applepay : NSObject {
       paymentSummaryItems = [total]
       let paymentRequest = PKPaymentRequest()
       paymentRequest.paymentSummaryItems = paymentSummaryItems
-      paymentRequest.merchantIdentifier = "merchant.sa.urwayphp"
+        paymentRequest.merchantIdentifier = merchantIdentfier ?? ""
       paymentRequest.merchantCapabilities = .capability3DS
       paymentRequest.countryCode = "SA"
       paymentRequest.currencyCode = "SAR"
