@@ -13,9 +13,9 @@ import type { AndroidLayerType } from 'react-native-webview/lib/WebViewTypes';
 
 
 
-const getApplePayToken = (merchantid : string,amount :  string,name: string ) => {
+const getApplePayToken = (merchantid : string,amount :  string,name: string,country:String,currency:String ) => {
   return new Promise((resolve, reject) => {
-    Applepay.createApplePayToken(merchantid, amount, name , (err :  any, token:  AndroidLayerType) => {
+    Applepay.createApplePayToken(merchantid, amount, name ,country,currency, (err :  any, token:  AndroidLayerType) => {
       if (err) {
         reject(`Error coming from iOS: ${err}`);
       } else {
@@ -67,7 +67,7 @@ console.log('SHA-256 Hash in Apple Pay :', hash);
     });
     //console.log("requestdata.trackId"+requestdata.trackid);
     try {
-      const appletoken = await getApplePayToken(requestdata.merchantid,requestdata.amount,requestdata.store_name);
+      const appletoken = await getApplePayToken(requestdata.merchantid,requestdata.amount,requestdata.store_name,requestdata.country,requestdata.currency);
     const paymentRequest = 
         {
           
@@ -153,7 +153,7 @@ publicIP()
         console.log("appName : "+appName);
           devicejson = {
                                  'pluginName': "React Native ",
-                                 'pluginVersion': '1.0.0',
+                                 'pluginVersion': '1.0.2',
                                  'pluginPlatform': DeviceInfo.getDeviceType(),
                                  'deviceModel': DeviceInfo.getModel(),
                                  'devicePlatform': DeviceInfo.getSystemName(),

@@ -27,6 +27,8 @@ class Applepay : NSObject {
   var response :RCTResponseSenderBlock?
   var result : PKPaymentAuthorizationResult?
   var amount : String?
+  var country : String?
+  var currency : String? 
   var err : PKPaymentAuthorizationResult?
 
   
@@ -48,11 +50,12 @@ class Applepay : NSObject {
       .visa,
       .quicPay
   ]
-  @objc
-  func createApplePayToken(_ merchantIdentfier:String,amount:String,label:String,callback:@escaping RCTResponseSenderBlock) -> Void {
+
+@objc
+  func createApplePayToken(_ merchantIdentfier:String,amount:String,label:String,country:String,currency:String,callback:@escaping RCTResponseSenderBlock) -> Void {
     
     let deviceCanMakePayment = Applepay.applePayStatus();
-    
+     print(" createApplePayToken : \(deviceCanMakePayment)")
     if !deviceCanMakePayment {
 
       callback(["this device dose not support applepay"]);
@@ -62,20 +65,23 @@ class Applepay : NSObject {
       self.label = label;
       self.response = callback;
       self.amount = amount
+      self.country = country
+      self.currency = currency
       
       self.startPayment()
     }
   }
+
     
   func startPayment() -> Void{
     let total = PKPaymentSummaryItem(label: self.label!, amount: NSDecimalNumber(string: self.amount!), type: .final)
       paymentSummaryItems = [total]
       let paymentRequest = PKPaymentRequest()
       paymentRequest.paymentSummaryItems = paymentSummaryItems
-        paymentRequest.merchantIdentifier = merchantIdentfier ?? ""
+      paymentRequest.merchantIdentifier = merchantIdentfier ?? ""
       paymentRequest.merchantCapabilities = .capability3DS
-      paymentRequest.countryCode = "SA"
-      paymentRequest.currencyCode = "SAR"
+      paymentRequest.countryCode = country ?? ""
+      paymentRequest.currencyCode = currency ?? ""
         if #available(iOS 12.1.1, *) {
           paymentRequest.supportedNetworks = Applepay.supportedNetworks
       } else {

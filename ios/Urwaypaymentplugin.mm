@@ -10,6 +10,12 @@
 
 @interface RCT_EXTERN_MODULE(Applepay,NSObject)
 
-RCT_EXTERN_METHOD(createApplePayToken:(NSString *)merchantIdentfier amount:(NSString *) amount label:(NSString *) label callback: (RCTResponseSenderBlock)callback)
+RCT_EXTERN_METHOD(createApplePayToken:(NSString *)merchantIdentfier 
+amount:(NSString *) amount 
+label:(NSString *) label 
+ country:(NSString *) country
+ currency:(NSString *) currency
+callback: (RCTResponseSenderBlock)callback)
+
 
 @end
